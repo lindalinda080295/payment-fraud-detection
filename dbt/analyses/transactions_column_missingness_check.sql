@@ -5,7 +5,7 @@ DECLARE unpivot_list STRING;
 -- Step 1: pull the column list automatically
 SET cols = (
   SELECT ARRAY_AGG(column_name)
-  FROM `project-41ec398a-5c57-453b-84c.fraud_detection.INFORMATION_SCHEMA.COLUMNS`
+  FROM `{{ env_var('GCP_PROJECT_ID') }}.fraud_detection.INFORMATION_SCHEMA.COLUMNS`
   WHERE table_name = 'train_transaction'
 );
 

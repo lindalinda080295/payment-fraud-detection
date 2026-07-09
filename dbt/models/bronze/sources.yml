@@ -2,9 +2,9 @@ version: 2
 
 sources:
   - name: raw_ieee
-    database: project-41ec398a-5c57-453b-84c
+    database: "{{ env_var('GCP_PROJECT_ID') }}"
     schema: fraud_detection
 
     tables:
       - name: train_identity
-      - name: train_transaction
+      - name: train_transaction  
