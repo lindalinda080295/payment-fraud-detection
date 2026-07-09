@@ -1,0 +1,76 @@
+card-fraud-detection/
+├── README.md
+├── requirements.txt
+├── .gitignore
+├── dbt/
+│   ├── dbt_project.yml
+│   ├── analyses/
+│   │   └── column_missingness_check.sql
+│   └── models/
+│       ├── bronze/
+│       │   ├── sources.yml
+│       │   ├── bronze_transaction.sql
+│       │   └── bronze_identity.sql
+│       ├── silver/
+│       │   ├── silver_transaction.sql
+│       │   └── silver_identity.sql
+│       └── gold/
+│           ├── gold_card_transactions.sql
+│           └── schema.yml
+├── notebooks/
+│   ├── 01_eda.ipynb
+│   ├── 02_descriptive_clustering.ipynb
+│   └── 03_predictive_modeling.ipynb
+├── data/
+│   └── README.md          ← explains data source + how to obtain it (see note below)
+└── images/                ← exported charts referenced in README
+
+
+
+
+
+Step 1 — Install
+bashpip install dbt-core dbt-bigquery
+Step 2 — Authenticate to GCP (so dbt can actually reach your BigQuery project)
+bashgcloud auth application-default login
+(Requires the Google Cloud CLI installed; if you don't have it, a service-account JSON key is the alternative — let me know if you need that path instead.)
+Step 3 — Initialize the project
+bashdbt init card_fraud_project
+This prompts you for: adapter (choose bigquery), your GCP project ID, dataset, location, and auth method. It then does two things automatically:
+
+Creates the project folder (card_fraud_project/) with a default dbt_project.yml and a placeholder models/example/ folder
+Creates ~/.dbt/profiles.yml outside your project folder — this holds your connection details/credentials. Leave it there; don't move it into your repo, and never commit it (it's the reason dbt keeps it separate from the project by default).
+
+Step 4 — Clean up the placeholder
+bashcd card_fraud_project
+rm -rf models/example
+Step 5 — Manually create your folder structure
+bashmkdir -p models/bronze models/silver models/gold analyses
+Then create each .sql file with your editor (VS Code, whatever you use) using the content we already drafted for bronze/silver/gold.
+Step 6 — Add sources.yml in models/bronze/ (declares your two raw BigQuery tables as the lineage starting point).
+Step 7 — Configure materialization in dbt_project.yml:
+yamlmodels:
+  card_fraud_project:
+    bronze:
+      +materialized: view
+    silver:
+      +materialized: view
+    gold:
+      +materialized: table
+Step 8 — Run it
+bashdbt run          # builds bronze → silver → gold in BigQuery
+dbt test         # runs the schema tests (uniqueness, accepted values, etc.)
+dbt docs generate && dbt docs serve   # generates the lineage diagram
+Step 9 — Run the analysis script when you want it (not automatic like models):
+bashdbt compile --select column_missingness_check
+This resolves any ref()/source() Jinja into real SQL, which you then copy from target/compiled/.../column_missingness_check.sql and paste into the BigQuery console to actually execute (or use dbt show --select column_missingness_check if your dbt version supports it, which runs and previews it directly).
+Step 10 — Before committing to git, add a .gitignore with at minimum:
+target/
+logs/
+dbt_packages/
+These are dbt's compiled-artifact and log folders — regenerated every run, shouldn't be versioned.
+
+
+
+
+http://localhost:8080/#!/model/model.card_fraud_project.gold_card_transactions

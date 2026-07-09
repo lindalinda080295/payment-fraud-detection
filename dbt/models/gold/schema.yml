@@ -1,0 +1,10 @@
+models:
+  - name: gold_card_transactions
+    columns:
+      - name: transaction_id
+        tests: [unique, not_null]
+      - name: is_fraud
+        tests:
+          - accepted_values:
+              values: [0, 1]
+              quote: false
