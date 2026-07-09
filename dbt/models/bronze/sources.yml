@@ -1,10 +1,12 @@
-version: 2
+version: 3	
 
 sources:
   - name: raw_ieee
     database: "{{ env_var('GCP_PROJECT_ID') }}"
     schema: fraud_detection
-
+    description: "Raw IEEE-CIS card fraud detection dataset (Kaggle), loaded as-is into BigQuery."
     tables:
+      - name: train_transaction
+        description: "One row per transaction: amount, product code, card details, anonymized C/M/V features."
       - name: train_identity
-      - name: train_transaction  
+        description: "One row per transaction (subset with identity data captured): device, browser, and identity-match signals."
